@@ -5,11 +5,11 @@ from __future__ import absolute_import, unicode_literals
 import copy
 import itertools
 
+import pytest
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.utils import six
 
 import django_tables2 as tables
-import pytest
 from django_tables2.tables import DeclarativeColumnsMetaclass
 
 from .utils import build_request
@@ -473,24 +473,31 @@ def test_empty_text():
 
 
 def test_prefix():
-    """Test that table prefixes affect the names of querystring parameters"""
+    '''Test that table prefixes affect the names of querystring parameters'''
     class TableA(tables.Table):
         name = tables.Column()
 
         class Meta:
             prefix = 'x'
 
-    assert 'x' == TableA([]).prefix
+    table = TableA([])
+    html = table.as_html(build_request('/'))
+
+    assert 'x' == table.prefix
+    assert 'xsort=name' in html
 
     class TableB(tables.Table):
-        name = tables.Column()
+        last_name = tables.Column()
 
     assert '' == TableB([]).prefix
     assert 'x' == TableB([], prefix='x').prefix
 
     table = TableB([])
     table.prefix = 'x'
+    html = table.as_html(build_request('/'))
+
     assert 'x' == table.prefix
+    assert 'xsort=last_name' in html
 
 
 def test_field_names():
